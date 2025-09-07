@@ -60,6 +60,6 @@ def batch_quotes(
 
     return {"quotes": out}
 
-@app.get("/healthz")
-def healthz():
-    return {"ok": True, "now_jst": jp_tz_now().strftime("%Y-%m-%d %H:%M:%S")}
+    @app.get("/health")
+def health():
+    return {"status": "ok"}
