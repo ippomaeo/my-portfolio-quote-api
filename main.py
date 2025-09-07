@@ -60,6 +60,12 @@ def batch_quotes(
 
     return {"quotes": out}
 
-    @app.get("/health")
+# 既存の /healthz はそのまま
+@app.get("/healthz")
+def healthz():
+    return {"ok": True, "now_jst": jp_tz_now().strftime("%Y-%m-%d %H:%M:%S")}
+
+# 追加：/health でも同じ結果を返す（ドキュメントには出さなくてOKなら include_in_schema=False）
+@app.get("/health", include_in_schema=False)
 def health():
-    return {"status": "ok"}
+    return {"ok": True, "now_jst": jp_tz_now().strftime("%Y-%m-%d %H:%M:%S")}
