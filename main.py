@@ -89,3 +89,41 @@ def quote(symbol: str, x_api_key: Optional[str] = Header(None)):
 
     price = float(hist["Close"].iloc[-1])
     return QuoteResponse(symbol=symbol.upper(), price=price)
+
+# --- ここから追記 ---
+
+from fastapi import Security
+from fastapi.security.api_key import APIKeyHeader
+
+# APIキーのヘッダースキーマを定義（SwaggerにAuthorizeボタンを出すため）
+api_key_header = APIKeyHeader(name="x-api-key", auto_error=False)
+
+# 認証チェック用の関数
+def require_key(x_api_key: str = Security(api_key_header)):
+    from fastapi import HTTPException
+    import os
+
+    # Render の Environment に設定した API_KEY を読む
+    API_KEY = os.getenv("API_KEY", "")
+
+    if not API_KEY or x_api_key != API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid API Key")
+
+# /batch_quotes に認証を付ける
+@app.get("/batch_quotes")
+def batch_quotes(
+    symbols: List[str] = Query(..., description="例: 7203.T,6758.T,8306.T"),
+    _: None = Depends(require_key)   # 👈 これでAPIキー必須になる
+):
+    # 既存の処理はそのまま
+    ...
+
+# /quote にも認証を付ける
+@app.get("/quote")
+def quote(
+    symbol: str = Query(..., description="例: 6758.T"),
+    _: None = Depends(require_key)
+):
+    # 既存の処理はそのまま
+    ...
+# --- ここまで追記 ---
