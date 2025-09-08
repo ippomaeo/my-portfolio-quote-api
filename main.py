@@ -1,8 +1,10 @@
-from fastapi import FastAPI, Query, Header, HTTPException
+from fastapi import FastAPI, Depends, Query, Header, HTTPException
 from typing import List, Optional
 import yfinance as yf
 import pandas as pd
 from datetime import datetime, timedelta, timezone
+
+
 
 API_KEY = "change-me"  # デプロイ先では環境変数で上書き推奨
 
