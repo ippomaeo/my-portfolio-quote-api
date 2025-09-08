@@ -69,3 +69,23 @@ def healthz():
 @app.get("/health", include_in_schema=False)
 def health():
     return {"ok": True, "now_jst": jp_tz_now().strftime("%Y-%m-%d %H:%M:%S")}
+
+from pydantic import BaseModel  # 先頭の import 群の近くに既に無ければ追加
+
+class QuoteResponse(BaseModel):
+    symbol: str
+    price: float
+
+@app.get("/quote", response_model=QuoteResponse)
+def quote(symbol: str, x_api_key: Optional[str] = Header(None)):
+    # APIキー確認（Render の Environment Variables に設定した API_KEY を使用）
+    require_key(x_api_key)
+
+    # yfinance で当日(直近)の終値を取得
+    tkr = yf.Ticker(symbol)
+    hist = tkr.history(period="1d")
+    if hist.empty:
+        raise HTTPException(status_code=404, detail=f"No data for {symbol}")
+
+    price = float(hist["Close"].iloc[-1])
+    return QuoteResponse(symbol=symbol.upper(), price=price)
